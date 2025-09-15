@@ -1,7 +1,10 @@
-W terminalu WSL (lub Intelij) aktywuj środowisko: source ~/ansible-venv/bin/activate
+W terminalu WSL (lub Intelij) aktywuj środowisko: 
 
-do
+source ~/ansible-venv/bin/activate
 
+i odpal to:  ansible-galaxy collection install community.postgresql
+
+------------------------------------------------------------------------------------
 Teraz Twój cykl pracy (np. podczas testowania zmian) wygląda tak:
 "Burzenie" starej konfiguracji (aby mieć czysty start):
 

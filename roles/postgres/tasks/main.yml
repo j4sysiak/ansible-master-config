@@ -5,17 +5,23 @@
       - postgresql
       - postgresql-client
     state: present
+
+# --- NOWE ZADANIE ---
+- name: Install psycopg2 Python library for PostgreSQL
+  ansible.builtin.apt:
+    name: python3-psycopg2
+    state: present
+# --- KONIEC NOWEGO ZADANIA ---
+
 - name: Ensure PostgreSQL service is started and enabled
   ansible.builtin.service:
     name: postgresql
     state: started
     enabled: yes
 
-
-# --- NOWA, POPRAWNA WERSJA ---
 - name: Create the "test" database
   community.postgresql.postgresql_db:
     name: test
     state: present
-    login_user: postgres  # <-- Ta opcja robi całą magię!
-  become: true  # 'become' jest nadal potrzebne, aby mieć uprawnienia do uruchomienia polecenia
+    login_user: postgres
+  become: true
