@@ -1,17 +1,20 @@
 ---
-- name: Install PostgreSQL server and client
+- name: Install PostgreSQL and dependencies
   ansible.builtin.apt:
     name:
       - postgresql
       - postgresql-client
+      - python3-psycopg2
     state: present
+    update_cache: yes
 
-# --- NOWE ZADANIE ---
-- name: Install psycopg2 Python library for PostgreSQL
-  ansible.builtin.apt:
-    name: python3-psycopg2
-    state: present
-# --- KONIEC NOWEGO ZADANIA ---
+- name: Allow local connections using md5 for all users
+  ansible.builtin.lineinfile:
+    path: /etc/postgresql/14/main/pg_hba.conf
+    regexp: '^local\s+all\s+all\s+peer'
+    line: 'local   all             all                                     md5'
+    backrefs: yes
+  notify: Restart PostgreSQL
 
 - name: Ensure PostgreSQL service is started and enabled
   ansible.builtin.service:
@@ -19,9 +22,21 @@
     state: started
     enabled: yes
 
-- name: Create the "test" database
+# --- NOWA, OSTATECZNA SEKCJA DO ZARZĄDZANIA BAZĄ ---
+
+- name: Create a dedicated admin user for Ansible
+  community.postgresql.postgresql_user:
+    name: ansible_admin
+    password: "SuperSecurePassword123!" # Zmień to w przyszłości!
+    role_attr_flags: SUPERUSER,LOGIN
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Create the "test" database owned by our admin user
   community.postgresql.postgresql_db:
     name: test
+    owner: ansible_admin
     state: present
-    login_user: postgres
   become: true
+  become_user: postgres
