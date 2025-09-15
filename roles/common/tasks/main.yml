@@ -1,0 +1,9 @@
+---
+- name: Update apt cache and install common packages
+  ansible.builtin.apt:
+    name:
+      - vim
+      - git
+      - curl
+    state: present
+    update_cache: yes

@@ -199,6 +199,7 @@ W terminalu WSL aktywuj środowisko: source ~/ansible-venv/activate.
 Uruchom jeden, główny playbook:
 code
 Bash
+
 ansible-playbook site.yml
 Obserwuj, jak Ansible wykonuje kolejne "playe" – najpierw konfigurację wspólną i firewall, potem Nginx, a na końcu PostgreSQL.
 Weryfikacja

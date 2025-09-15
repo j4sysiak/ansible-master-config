@@ -1,0 +1,14 @@
+---
+- name: Ensure iptables-persistent is installed
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+- name: Apply firewall rules from the list
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: "{{ item.proto }}"
+    destination_port: "{{ item.port }}"
+    jump: ACCEPT
+    comment: "{{ item.comment }}"
+  loop: "{{ firewall_rules }}"
+  notify: Save iptables rules

@@ -1,0 +1,40 @@
+---
+# tasks file for teardown
+
+- name: Stop and disable Nginx service
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+    enabled: no
+  ignore_errors: yes # Ignoruj błąd, jeśli usługa już nie istnieje
+
+- name: Uninstall Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: absent
+    purge: yes # Usuń też pliki konfiguracyjne
+    autoremove: yes # Usuń niepotrzebne zależności
+
+- name: Stop and disable PostgreSQL service
+  ansible.builtin.service:
+    name: postgresql
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Uninstall PostgreSQL
+  ansible.builtin.apt:
+    name: postgresql
+    state: absent
+    purge: yes
+    autoremove: yes
+
+- name: Flush all iptables rules
+  ansible.builtin.iptables:
+    flush: yes
+  notify: Save flushed iptables rules
+
+- name: Ensure iptables-persistent is installed (for handler)
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present

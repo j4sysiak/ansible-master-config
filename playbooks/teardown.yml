@@ -1,0 +1,7 @@
+---
+- name: Tear down server configuration
+  hosts: all
+  become: true
+
+  roles:
+    - teardown
