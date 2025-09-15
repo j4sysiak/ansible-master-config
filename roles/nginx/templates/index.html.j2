@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to Ansible-Managed Nginx!</title>
+</head>
+<body>
+    <h1>Hello from Nginx, configured by Ansible!</h1>
+    <p>This server is managed by Ansible.</p>
+    <hr>
+    <h3>Server Information:</h3>
+    <ul>
+        <li><strong>Hostname:</strong> {{ ansible_hostname }}</li>
+        <li><strong>Distribution:</strong> {{ ansible_distribution }} {{ ansible_distribution_version }}</li>
+        <li><strong>IP Address:</strong> {{ ansible_default_ipv4.address }}</li>
+    </ul>
+</body>
+</html>

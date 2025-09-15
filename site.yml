@@ -1,0 +1,19 @@
+---
+- name: Apply common configuration to all hosts
+  hosts: all
+  become: true
+  roles:
+    - common
+    - firewall
+
+- name: Configure web servers
+  hosts: web_servers
+  become: true
+  roles:
+    - nginx
+
+- name: Configure database servers
+  hosts: db_servers
+  become: true
+  roles:
+    - postgres

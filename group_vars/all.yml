@@ -1,0 +1,4 @@
+firewall_rules:
+  - { proto: 'tcp', port: '22', comment: 'Allow SSH' } # Zawsze dodajemy SSH!
+  - { proto: 'tcp', port: '80', comment: 'Allow HTTP for Nginx' }
+  - { proto: 'tcp', port: '5432', comment: 'Allow PostgreSQL' }
