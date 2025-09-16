@@ -2,6 +2,15 @@
 - name: Apply common configuration to all hosts
   hosts: all
   become: true
+
+  # --- PRZENIESIONA I POPRAWIONA SEKCJA ZMIENNYCH ---
+  vars:
+    firewall_rules:
+      - { proto: 'tcp', port: '22', comment: 'Allow SSH' }
+      - { proto: 'tcp', port: '80', comment: 'Allow HTTP for Nginx' }
+      - { proto: 'tcp', port: '5432', comment: 'Allow PostgreSQL' }
+      - { proto: 'tcp', port: '8080', comment: 'Allow Tomcat' }
+
   roles:
     - common
     - firewall
@@ -17,3 +26,9 @@
   become: true
   roles:
     - postgres
+
+- name: Configure application servers
+  hosts: app_servers
+  become: true
+  roles:
+    - tomcat
