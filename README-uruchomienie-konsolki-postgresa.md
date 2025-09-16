@@ -114,11 +114,3 @@ Wykonaj polecenie listowania baz danych:
 \l
 Na liście również powinieneś zobaczyć bazę test.
 Wyjdź z psql (\q) i z sesji użytkownika postgres (exit).
-
-
-
-
-
-
-
-
