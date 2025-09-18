@@ -1,0 +1,14 @@
+---
+# Wersja Tomcata, którą chcemy zainstalować
+tomcat_version: "10.1.46"
+tomcat_major_version: "10"
+
+# Użytkownik i grupa, jako które będzie działał Tomcat
+tomcat_user: "tomcat"
+tomcat_group: "tomcat"
+
+# Ścieżka instalacji
+tomcat_install_dir: "/opt/tomcat"
+
+# Wersja Javy do zainstalowania
+java_package: "openjdk-17-jdk"

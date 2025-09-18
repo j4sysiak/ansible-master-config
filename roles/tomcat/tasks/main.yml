@@ -1,0 +1,104 @@
+---
+# === ETAP 1: INSTALACJA ZALEŻNOŚCI ===
+- name: Install Java JDK
+  ansible.builtin.apt:
+    name: "{{ java_package }}"
+    state: present
+    update_cache: yes
+
+
+# === ETAP 2: STWORZENIE UŻYTKOWNIKA I GRUPY ===
+- name: Create a tomcat group
+  ansible.builtin.group:
+    name: "{{ tomcat_group }}"
+    state: present
+
+
+- name: Create a tomcat user
+  ansible.builtin.user:
+    name: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    home: "{{ tomcat_install_dir }}"
+    shell: /bin/false
+    state: present
+
+
+# === ETAP 3: POBRANIE I INSTALACJA TOMCATA ===
+- name: Download and unarchive Tomcat
+  ansible.builtin.unarchive:
+    src: "https://archive.apache.org/dist/tomcat/tomcat-{{ tomcat_major_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+          # https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.46/bin/apache-tomcat-10.1.46.tar.gz
+    dest: "/opt/"
+    remote_src: yes
+    creates: "/opt/apache-tomcat-{{ tomcat_version }}"
+
+
+- name: Check if /opt/tomcat exists and what it is
+  ansible.builtin.stat:
+    path: "{{ tomcat_install_dir }}"
+  register: tomcat_link_check
+
+
+- name: Remove /opt/tomcat if it is a directory
+  ansible.builtin.file:
+    path: "{{ tomcat_install_dir }}"
+    state: absent
+  when: tomcat_link_check.stat.exists and tomcat_link_check.stat.isdir
+
+
+- name: Create a symbolic link to the installation directory
+  ansible.builtin.file:
+    src: "/opt/apache-tomcat-{{ tomcat_version }}"
+    dest: "{{ tomcat_install_dir }}"
+    state: link
+    force: yes # Dodajemy force=yes dla pewności
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+
+
+- name: Change ownership of Tomcat directory
+  ansible.builtin.file:
+    path: "{{ tomcat_install_dir }}"
+    state: directory
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    recurse: yes
+
+
+# === ETAP 4: KONFIGURACJA USŁUGI I WDROŻENIE APLIKACJI ===
+- name: Create a systemd service file for Tomcat
+  ansible.builtin.template:
+    src: tomcat.service.j2
+    dest: /etc/systemd/system/tomcat.service
+    mode: '0644'
+  notify: Reload systemd and restart Tomcat
+
+
+# --- NOWA, POPRAWIONA LOGIKA WDRAŻANIA APLIKACJI ---
+- name: Create an artifacts directory on the server
+  ansible.builtin.file:
+    path: /opt/artifacts
+    state: directory
+    mode: '0755'
+
+- name: Download the sample application if not present
+  ansible.builtin.get_url:
+    url: https://get.jenkins.io/war-stable/latest/jenkins.war
+    dest: /opt/artifacts/sample.war
+    mode: '0644'
+
+- name: Deploy sample WAR application from the artifacts directory
+  ansible.builtin.copy:
+    src: /opt/artifacts/sample.war
+    dest: "{{ tomcat_install_dir }}/webapps/sample.war"
+    owner: "{{ tomcat_user }}"
+    group: "{{ tomcat_group }}"
+    remote_src: yes  # <-- To jest klucz! Mówi Ansible, że źródło jest na maszynie zdalnej.
+  notify: Restart Tomcat
+
+
+- name: Start and enable the Tomcat service
+  ansible.builtin.service:
+    name: tomcat
+    state: started
+    enabled: yes
