@@ -1,8 +1,16 @@
 ---
+# --- NOWE ZADANIE ---
+# - name: Flush all existing iptables rules
+#   ansible.builtin.iptables:
+#     flush: yes
+#   notify: Save iptables rules
+# --- KONIEC NOWEGO ZADANIA ---
+
 - name: Ensure iptables-persistent is installed
   ansible.builtin.apt:
     name: iptables-persistent
     state: present
+
 - name: Apply firewall rules from the list
   ansible.builtin.iptables:
     chain: INPUT
