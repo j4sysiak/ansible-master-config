@@ -23,3 +23,13 @@ Zaloguj się na serwer przez SSH i sprawdź:
 sudo iptables -L INPUT – powinieneś zobaczyć wszystkie 3 reguły.
 systemctl status postgresql – usługa powinna być active (running).
 
+*****************************************************************************************************************
+uruchamianie al'la molecule:   testowanie roli
+
+ 
+ 
+(ansible-venv) jacek@BERLIN:  ansible-playbook playbooks/test_role.yml --extra-vars "test_role=influxdb"
+
+--extra-vars "test_role=influxdb": To jest polecenie, które przekazuje zmienną z linii poleceń do naszego playbooka. 
+Ansible podstawi influxdb w miejsce {{ test_role }}.
+To polecenie uruchomi tylko zadania z roli influxdb na Twoim serwerze. To jest dokładnie to, co robi molecule converge.
