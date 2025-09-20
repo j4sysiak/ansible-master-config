@@ -36,6 +36,7 @@
     - name: Store the admin token as a fact
       ansible.builtin.set_fact:
         influxdb_admin_token: "{{ setup_response.json.auth.token }}"
+        cacheable: yes # <-- WAŻNE: Pozwala na użycie tego faktu w innych "playach"
 
     - name: Display the admin token (for debugging, can be removed)
       ansible.builtin.debug:

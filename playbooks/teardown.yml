@@ -1,4 +1,14 @@
 ---
+
+# === NOWA SEKCJA PRE-FLIGHT CHECK ===
+- name: Pre-flight checks and apt cleanup
+  hosts: all
+  become: true
+  roles:
+    - apt-fix
+# === KONIEC NOWEJ SEKCJI ===
+
+
 - name: Tear down server configuration
   hosts: all
   become: true

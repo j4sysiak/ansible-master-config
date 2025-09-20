@@ -54,11 +54,27 @@
     purge: yes # Ważne: usuń też pliki konfiguracyjne
     autoremove: yes
 
-- name: Remove InfluxDB data directories
+
+- name: Stop and disable InfluxDB service
+  ansible.builtin.service:
+    name: influxdb
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Uninstall InfluxDB and its dependencies
+  ansible.builtin.apt:
+    name: influxdb2
+    state: absent
+    purge: yes
+    autoremove: yes
+
+- name: Remove ALL InfluxDB data and configuration directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-    - /var/lib/influxdb/
-    - /root/.influxdbv2/ # Usuwamy plik konfiguracyjny!
-    - /etc/influxdb/
+    - /var/lib/influxdb/  # Główny katalog danych
+    - /root/.influxdbv2/   # Konfiguracja CLI dla roota
+    - /etc/influxdb/       # Dodatkowe pliki konfiguracyjne
+    - /var/log/influxdb/   # Logi

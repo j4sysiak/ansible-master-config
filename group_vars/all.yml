@@ -12,5 +12,9 @@ firewall_rules:
 # Konfiguracja InfluxDB
 influxdb_admin_user: "jacek"
 influxdb_admin_password: "jacek!"
-influxdb_org: "my-org"
-influxdb_bucket: "my-bucket"
+influxdb_org: "jacek-org"
+influxdb_bucket: "jacek-bucket"
+influxdb_admin_token: "" # Pusta wartość początkowa
+
+
+ 

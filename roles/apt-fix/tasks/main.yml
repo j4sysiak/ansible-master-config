@@ -1,0 +1,18 @@
+---
+- name: Remove potentially problematic repository files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/influxdb.list
+    - /etc/apt/sources.list.d/influxdata.list
+
+- name: Remove potentially problematic GPG key
+  ansible.builtin.file:
+    path: /usr/share/keyrings/influxdata-archive_compat.gpg
+    state: absent
+
+- name: Force apt cache update after cleanup
+  ansible.builtin.apt:
+    update_cache: yes
+  changed_when: false

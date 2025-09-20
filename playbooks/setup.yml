@@ -1,4 +1,14 @@
 ---
+
+# === NOWA SEKCJA PRE-FLIGHT CHECK ===
+- name: Pre-flight checks and apt cleanup
+  hosts: all
+  become: true
+  roles:
+    - apt-fix
+# === KONIEC NOWEJ SEKCJI ===
+
+
 - name: Apply common configuration to all hosts
   hosts: all
   become: true
@@ -39,11 +49,11 @@
     - role: tomcat
       tags: ['tomcat']
 
-# --- NOWA SEKCJA (NOWY "PLAY") ---
 - name: Configure monitoring servers
   hosts: monitoring_servers
   become: true
   roles:
     - role: influxdb
       tags: ['influxdb']
-# --- KONIEC NOWEJ SEKCJI ---
+    - role: telegraf   # <-- NOWA ROLA
+      tags: ['telegraf']
