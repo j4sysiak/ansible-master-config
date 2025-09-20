@@ -1,0 +1,6 @@
+---
+- name: Include InfluxDB installation tasks
+  ansible.builtin.include_tasks: install.yml
+
+- name: Include InfluxDB configuration tasks
+  ansible.builtin.include_tasks: configure.yml

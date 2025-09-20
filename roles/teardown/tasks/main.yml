@@ -38,3 +38,27 @@
   ansible.builtin.apt:
     name: iptables-persistent
     state: present
+
+    # --- NOWA SEKCJA DLA INFLUXDB ---
+- name: Stop and disable InfluxDB service
+  ansible.builtin.service:
+    name: influxdb
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Uninstall InfluxDB and its dependencies
+  ansible.builtin.apt:
+    name: influxdb2
+    state: absent
+    purge: yes # Ważne: usuń też pliki konfiguracyjne
+    autoremove: yes
+
+- name: Remove InfluxDB data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/influxdb/
+    - /root/.influxdbv2/ # Usuwamy plik konfiguracyjny!
+    - /etc/influxdb/

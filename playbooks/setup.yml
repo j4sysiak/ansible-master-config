@@ -10,25 +10,40 @@
       - { proto: 'tcp', port: '80', comment: 'Allow HTTP for Nginx' }
       - { proto: 'tcp', port: '5432', comment: 'Allow PostgreSQL' }
       - { proto: 'tcp', port: '8080', comment: 'Allow Tomcat' }
+      - { proto: 'tcp', port: '8086', comment: 'Allow InfluxDB' } # <-- NOWA REGUŁA do: InfluxDB
 
   roles:
-    - common
-    - firewall
+    - role: common
+      tags: ['common']
+    - role: firewall
+      tags: ['firewall']
 
 - name: Configure web servers
   hosts: web_servers
   become: true
   roles:
-    - nginx
+    - role: nginx
+      tags: ['nginx']
 
 - name: Configure database servers
   hosts: db_servers
   become: true
   roles:
-    - postgres
+    - role: postgres
+      tags: ['postgres']
 
 - name: Configure application servers
   hosts: app_servers
   become: true
   roles:
-    - tomcat
+    - role: tomcat
+      tags: ['tomcat']
+
+# --- NOWA SEKCJA (NOWY "PLAY") ---
+- name: Configure monitoring servers
+  hosts: monitoring_servers
+  become: true
+  roles:
+    - role: influxdb
+      tags: ['influxdb']
+# --- KONIEC NOWEJ SEKCJI ---
