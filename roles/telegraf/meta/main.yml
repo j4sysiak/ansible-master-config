@@ -1,4 +1,0 @@
-# roles/telegraf/meta/main.yml
-# dependencies:
-#   - role: influxdb
-

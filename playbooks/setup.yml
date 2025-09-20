@@ -42,6 +42,14 @@
     - role: postgres
       tags: ['postgres']
 
+#   komentuję to bo za długo trwa transfer pliku "OpenJDK11U-jdk_x64_linux_hotspot_11.0.28_6.tar.gz" do Oracla
+# - name: Configure Java environment
+#   hosts: java_hosts
+#   become: true
+#   roles:
+#     - role: java_local
+#       tags: ['java']
+
 - name: Configure application servers
   hosts: app_servers
   become: true

@@ -1,0 +1,20 @@
+---
+- name: Create parent directory for JDK installations
+  ansible.builtin.file:
+    path: "{{ java_install_parent_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Unarchive JDK from local file
+  ansible.builtin.unarchive:
+    src: "{{ java_local_archive }}"
+    dest: "{{ java_install_parent_dir }}"
+    owner: root
+    group: root
+    creates: "{{ java_install_parent_dir }}/{{ java_local_unpacked_dir }}"
+
+- name: Set JAVA_HOME environment variable globally
+  ansible.builtin.template:
+    src: java_home.sh.j2 # Musimy stworzyć ten plik!
+    dest: /etc/profile.d/java_home.sh
+    mode: '0644'

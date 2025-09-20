@@ -5,4 +5,9 @@
 
   # Tutaj będziemy "wstrzykiwać" rolę, którą chcemy przetestować
   roles:
-    - "{{ test_role }}"
+    - role: apt-fix      # <-- ZAWSZE uruchom jako pierwszy krok
+      tags: ['always']
+
+    - role: "{{ test_role }}"
+      tags: ['test']
+      

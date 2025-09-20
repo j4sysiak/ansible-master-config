@@ -1,0 +1,9 @@
+---
+# Nazwa archiwum .tar.gz
+java_local_archive: "OpenJDK11U-jdk_x64_linux_hotspot_11.0.28_6.tar.gz" # <-- Zmień na dokładną nazwę swojego pliku!
+
+# Nazwa katalogu, który powstanie po rozpakowaniu
+java_local_unpacked_dir: "jdk-11.0.28+6" # <-- Zmień na nazwę katalogu wewnątrz archiwum!
+
+# Gdzie chcemy zainstalować Javę
+java_install_parent_dir: "/opt/jdk"
