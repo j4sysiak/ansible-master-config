@@ -10,6 +10,7 @@ jacek / jacekjacek
 ******************************************
 
 
+
 3 packages can be upgraded. Run 'apt list --upgradable' to see them.
 ubuntu@ansible-arm-01:~$ systemctl status influxdb
 ● influxdb.service - InfluxDB is an open-source, distributed, time series database
