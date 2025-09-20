@@ -1,0 +1,8 @@
+---
+- name: Test a specific role
+  hosts: all # Celujemy we wszystkie hosty, bo nie wiemy, która rola będzie testowana
+  become: true
+
+  # Tutaj będziemy "wstrzykiwać" rolę, którą chcemy przetestować
+  roles:
+    - "{{ test_role }}"

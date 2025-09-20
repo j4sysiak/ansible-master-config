@@ -1,0 +1,31 @@
+---
+# tasks/install.yml
+- name: Update apt cache and install dependencies
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+
+- name: Add InfluxDB repository using shell commands
+  ansible.builtin.shell: |
+    curl -s https://repos.influxdata.com/influxdata-archive_compat.key | gpg --dearmor | tee /usr/share/keyrings/influxdata-archive_compat.gpg > /dev/null
+    echo "deb [signed-by=/usr/share/keyrings/influxdata-archive_compat.gpg] https://repos.influxdata.com/ubuntu {{ ansible_distribution_release }} stable" | tee /etc/apt/sources.list.d/influxdb.list
+  args:
+    creates: /etc/apt/sources.list.d/influxdb.list
+
+- name: Update apt cache after adding new repo
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install InfluxDB
+  ansible.builtin.apt:
+    name: "influxdb2"
+    state: present
+
+- name: Start and enable InfluxDB service
+  ansible.builtin.service:
+    name: influxdb
+    state: started
+    enabled: yes
