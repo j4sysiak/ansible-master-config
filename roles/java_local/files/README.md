@@ -1,0 +1,1 @@
+jak chcesz, żey ta rola działaa=ła to trzeba tu przekopiowac ten plik OpenJDK11U-jdk_x64_linux_hotspot_11.0.28_6.tar.gz z c:\devtools

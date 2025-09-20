@@ -1,10 +1,15 @@
 ---
-# === ETAP 1: INSTALACJA ZALEŻNOŚCI ===
+# === ETAP 1: INSTALACJA JAVY w ORACLE ===
+# UWAGA:  mozemy zainstalować i skonfigurować własną javę na Oracle, wystarczy uruchomić role: java_hosts
+#  jednak trzeba przerzucić 190 MB po sieci (stąd do Oracla) i to trwa wieki
+#  więc pozostaje przy tym rozwiązaniu
 - name: Install Java JDK
   ansible.builtin.apt:
     name: "{{ java_package }}"
     state: present
     update_cache: yes
+
+
 
 
 # === ETAP 2: STWORZENIE UŻYTKOWNIKA I GRUPY ===

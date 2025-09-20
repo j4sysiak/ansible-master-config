@@ -1,4 +1,14 @@
 ---
+
+# === NOWA SEKCJA PRE-FLIGHT CHECK ===
+- name: Pre-flight checks and apt cleanup
+  hosts: all
+  become: true
+  roles:
+    - apt-fix
+# === KONIEC NOWEJ SEKCJI ===
+
+
 - name: Apply common configuration to all hosts
   hosts: all
   become: true
@@ -32,6 +42,14 @@
     - role: postgres
       tags: ['postgres']
 
+#   komentuję to bo za długo trwa transfer pliku "OpenJDK11U-jdk_x64_linux_hotspot_11.0.28_6.tar.gz" do Oracla
+# - name: Configure Java environment
+#   hosts: java_hosts
+#   become: true
+#   roles:
+#     - role: java_local
+#       tags: ['java']
+
 - name: Configure application servers
   hosts: app_servers
   become: true
@@ -39,11 +57,11 @@
     - role: tomcat
       tags: ['tomcat']
 
-# --- NOWA SEKCJA (NOWY "PLAY") ---
 - name: Configure monitoring servers
   hosts: monitoring_servers
   become: true
   roles:
     - role: influxdb
       tags: ['influxdb']
-# --- KONIEC NOWEJ SEKCJI ---
+    - role: telegraf   # <-- NOWA ROLA
+      tags: ['telegraf']
