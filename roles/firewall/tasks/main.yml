@@ -6,6 +6,7 @@
 #   notify: Save iptables rules
 # --- KONIEC NOWEGO ZADANIA ---
 
+
 - name: Ensure iptables-persistent is installed
   ansible.builtin.apt:
     name: iptables-persistent
