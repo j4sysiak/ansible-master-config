@@ -1,0 +1,6 @@
+---
+# Domyślne wartości dla roli influxdb
+influxdb_admin_user: "jacek"
+influxdb_admin_password: "jacekjacek"
+influxdb_org: "my-org"
+influxdb_bucket: "my-bucket"
