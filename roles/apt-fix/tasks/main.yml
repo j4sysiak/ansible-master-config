@@ -1,4 +1,24 @@
 ---
+- name: Find and kill any running apt processes
+  ansible.builtin.shell: "ps aux | grep -i '[a]pt' | awk '{print $2}' | xargs -r kill -9"
+  register: kill_result
+  changed_when: kill_result.stdout != ""
+  failed_when: false # Ignoruj błąd, jeśli nie ma procesów do zabicia
+
+- name: Remove apt lock files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/apt/lists/lock
+    - /var/cache/apt/archives/lock
+    - /var/lib/dpkg/lock
+    - /var/lib/dpkg/lock-frontend
+
+- name: Force dpkg reconfiguration
+  ansible.builtin.command: dpkg --configure -a
+  changed_when: false
+
 - name: Remove potentially problematic repository files
   ansible.builtin.file:
     path: "{{ item }}"
@@ -6,18 +26,20 @@
   loop:
     - /etc/apt/sources.list.d/influxdb.list
     - /etc/apt/sources.list.d/influxdata.list
+    - /etc/apt/sources.list.d/grafana.list
 
-- name: Remove potentially problematic GPG key
+- name: Remove potentially problematic GPG keys
   ansible.builtin.file:
-    path: /usr/share/keyrings/influxdata-archive_compat.gpg
+    path: "{{ item }}"
     state: absent
+  loop:
+    - /usr/share/keyrings/influxdata-archive_compat.gpg
+    - /usr/share/keyrings/grafana.gpg
+    - /etc/apt/trusted.gpg.d/grafana.gpg
 
-- name: Force apt cache update after cleanup
-  ansible.builtin.apt:
-    update_cache: yes
-  changed_when: false
 
-  # --- NOWA SEKCJA: CZYSZCZENIE JAVY ---
+
+  # ---  CZYSZCZENIE JAVY ---
 - name: Purge all OpenJDK packages
   ansible.builtin.apt:
     name: "openjdk-*"
@@ -37,4 +59,10 @@
   ansible.builtin.file:
     path: /etc/profile.d/java_home.sh
     state: absent
-# --- KONIEC NOWEJ SEKCJI ---
+
+
+
+- name: Force apt cache update after cleanup
+  ansible.builtin.apt:
+    update_cache: yes
+  changed_when: false

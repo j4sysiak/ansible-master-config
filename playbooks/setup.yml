@@ -63,5 +63,7 @@
   roles:
     - role: influxdb
       tags: ['influxdb']
-    - role: telegraf   # <-- NOWA ROLA
+    - role: telegraf
       tags: ['telegraf']
+    - role: grafana
+      tags: [ 'grafana' ]

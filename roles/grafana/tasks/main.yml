@@ -1,0 +1,45 @@
+---
+- name: Add Grafana GPG key
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+    update_cache: yes
+
+- name: Install Grafana
+  ansible.builtin.apt:
+    name: "grafana={{ grafana_version }}"
+    state: present
+
+- name: Create Grafana provisioning directory for datasources
+  ansible.builtin.file:
+    path: /etc/grafana/provisioning/datasources
+    state: directory
+    owner: root
+    group: grafana
+    mode: '0755'
+
+- name: Provision the InfluxDB data source for Grafana
+  ansible.builtin.template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/influxdb.yml
+    owner: root
+    group: grafana
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Set Grafana admin password
+  ansible.builtin.command: "grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
+  changed_when: true
+  no_log: true
+  # To polecenie zwróci błąd, jeśli hasło jest już ustawione, ale na razie to OK.
+
+- name: Start and enable Grafana service
+  ansible.builtin.service:
+    name: grafana-server
+    state: started
+    enabled: yes
