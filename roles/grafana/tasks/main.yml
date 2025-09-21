@@ -1,98 +1,74 @@
 ---
-# === ETAP 0: BEZWZGLĘDNE CZYSZCZENIE ===
-- name: Remove any previous Grafana installations and artifacts
+# === ETAP 0: CZYSZCZENIE ===
+- name: Stop and disable Grafana if it exists
+  ansible.builtin.service:
+    name: grafana-server
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Purge any existing Grafana packages from apt
+  ansible.builtin.apt:
+    name: grafana
+    state: absent
+    purge: yes
+  ignore_errors: yes
+
+- name: Forcefully remove old Grafana directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-    - /usr/share/grafana          # Stary katalog domowy / link
-    - /usr/share/grafana-v10.4.2 # Rozpakowane archiwum
-    - /var/lib/grafana          # Dane
-    - /var/log/grafana          # Logi
-    - /etc/grafana              # Konfiguracja
-    - /etc/systemd/system/grafana-server.service # Plik usługi
+    - /etc/grafana
+    - /var/lib/grafana
 
-
-
-- name: Install dependencies for Grafana
-  ansible.builtin.apt:
-    name:
-      - adduser
-      - libfontconfig1
+# === ETAP 1: INSTALACJA ===
+- name: Add Grafana GPG key
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
     state: present
 
-- name: Create a grafana user
-  ansible.builtin.user:
-    name: grafana
-    system: yes
-    shell: /bin/false
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+    update_cache: yes
 
-- name: Ensure Grafana home directory exists
-  ansible.builtin.file:
-    path: /usr/share/grafana # Katalog domowy Grafany
-    state: directory
-    owner: grafana
-    group: grafana
-    mode: '0755'
-
-- name: Download and unarchive Grafana
-  ansible.builtin.unarchive:
-    src: https://dl.grafana.com/oss/release/grafana-10.4.2.linux-amd64.tar.gz
-    dest: /usr/share/
-    remote_src: yes
-    owner: root
-    group: root
-
-# --- NOWE ZADANIE DO SPRZĄTANIA ---
-- name: Remove old /usr/share/grafana directory if it exists
-  ansible.builtin.file:
-    path: /usr/share/grafana
-    state: absent
-
-
-
-- name: Rename the Grafana directory for consistency
-  ansible.builtin.command: mv /usr/share/grafana-v10.4.2 /usr/share/grafana
-  args:
-    creates: /usr/share/grafana # Wykonaj tylko, jeśli /usr/share/grafana nie istnieje
-
-
-
-- name: Ensure Grafana directories exist with correct permissions
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: grafana
-    group: grafana
-    mode: '0755'
-  loop:
-    - /var/lib/grafana
-    - /var/log/grafana
-    - /etc/grafana
-    - /etc/grafana/provisioning
-    - /etc/grafana/provisioning/datasources
-
-
-- name: Copy the Grafana service file
-  ansible.builtin.copy:
-    # Pracujemy teraz na stałej, przewidywalnej ścieżce
-    src: /usr/share/grafana/packaging/rpm/systemd/grafana-server.service
-    dest: /etc/systemd/system/grafana-server.service
-    remote_src: yes
-    mode: '0644'
-  notify: Reload systemd and restart Grafana
-
-- name: Provision the InfluxDB data source for Grafana
-  ansible.builtin.template:
-    src: datasource.yml.j2
-    dest: /etc/grafana/provisioning/datasources/influxdb.yml
-    owner: grafana
-    group: grafana
-    mode: '0644'
-  notify: Restart Grafana
+- name: Install a specific, stable version of Grafana (LTS 9.x)
+  ansible.builtin.apt:
+    name: "grafana=9.5.19"
+    state: present
 
 - name: Start and enable Grafana service
   ansible.builtin.service:
     name: grafana-server
     state: started
     enabled: yes
+
+- name: Wait for Grafana to be fully running
+  ansible.builtin.wait_for:
+    port: 3000
+    delay: 5
+
+# === ETAP 2: KONFIGURACJA PRZEZ API ===
+- name: Set Grafana admin password
+  ansible.builtin.command: "grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
+  changed_when: true
+  no_log: true
+
+
+# UWAGA: zainstaluj to na Oracle:  ansible-galaxy collection install community.grafana
+#    ale najpierw odpal to:  source ~/ansible-venv/bin/activate   na tym serwerze
+  # - name: Provision the InfluxDB data source via API
+    #   community.grafana.grafana_datasource:
+    #     name: "InfluxDB_API"
+    #     grafana_url: "http://localhost:3000"
+    #     grafana_user: "{{ grafana_admin_user }}"
+    #     grafana_password: "{{ grafana_admin_password }}"
+    #    ds_type: "influxdb"
+    #     ds_url: "http://localhost:8086"
+    #    jsonData:
+    #      version: "Flux"
+    #      organization: "{{ influxdb_org }}"
+    #   secureJsonData:
+#      token: "{{ influxdb_admin_token }}"
