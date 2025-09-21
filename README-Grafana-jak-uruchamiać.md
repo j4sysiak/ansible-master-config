@@ -13,7 +13,9 @@
 # ansible-playbook playbooks/test_role.yml --extra-vars "test_role=grafana"
 
 Weryfikacja (Moment Prawdy):
-Otwórz przeglądarkę i wejdź na adres: http://130.61.228.18:3000
+Otwórz przeglądarkę i wejdź na adres: 
+# http://130.61.228.18:3000
+
 Powinieneś zobaczyć ekran logowania Grafany.
 Zaloguj się, używając danych:    (\ansible-master-config\roles\grafana\defaults\main.yml)
 User: jacek

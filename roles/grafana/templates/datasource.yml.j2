@@ -7,8 +7,8 @@ datasources:
     url: http://localhost:8086
     jsonData:
       version: Flux
-      organization: "{{ influxdb_org }}"
-      defaultBucket: "{{ influxdb_bucket }}"
-      tlsSkipVerify: true
+      organization: {{ influxdb_org }}      # <-- BEZ CUDZYSŁOWÓW
+      defaultBucket: {{ influxdb_bucket }}   # <-- BEZ CUDZYSŁOWÓW
+      tlsSkipVerify: "true" # <-- Zmienione na string
     secureJsonData:
-      token: "{{ influxdb_admin_token }}"
+      token: "{{ influxdb_admin_token }}" # <-- TUTAJ CUDZYSŁÓW JEST DOBRY!

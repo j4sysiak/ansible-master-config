@@ -2,3 +2,6 @@
 grafana_version: "10.4.2" # Możesz sprawdzić najnowszą na stronie Grafany
 grafana_admin_user: "jacek"
 grafana_admin_password: "jacekjacek!" # Zmień na coś bezpieczniejszego!
+
+
+ # "https://dl.grafana.com/oss/release/grafana-10.4.2.linux-amd64.tar.gz"

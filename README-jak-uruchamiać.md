@@ -69,7 +69,8 @@ Dodałem nową regułę do firewalla w sekcji vars – to jest najlepsze miejsce
       - { proto: 'tcp', port: '80', comment: 'Allow HTTP for Nginx' }
       - { proto: 'tcp', port: '5432', comment: 'Allow PostgreSQL' }
       - { proto: 'tcp', port: '8080', comment: 'Allow Tomcat' }
-      - { proto: 'tcp', port: '8086', comment: 'Allow InfluxDB' } # <-- NOWA REGUŁA do: InfluxDB
+      - { proto: 'tcp', port: '8086', comment: 'Allow InfluxDB' }
+      - { proto: 'tcp', port: '3000', comment: 'Allow Grafana' }
 
 
 

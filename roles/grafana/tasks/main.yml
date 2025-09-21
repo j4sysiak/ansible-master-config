@@ -1,42 +1,95 @@
 ---
-- name: Add Grafana GPG key
-  ansible.builtin.apt_key:
-    url: https://apt.grafana.com/gpg.key
-    state: present
-
-- name: Add Grafana repository
-  ansible.builtin.apt_repository:
-    repo: "deb https://apt.grafana.com stable main"
-    state: present
-    update_cache: yes
-
-- name: Install Grafana
-  ansible.builtin.apt:
-    name: "grafana={{ grafana_version }}"
-    state: present
-
-- name: Create Grafana provisioning directory for datasources
+# === ETAP 0: BEZWZGLĘDNE CZYSZCZENIE ===
+- name: Remove any previous Grafana installations and artifacts
   ansible.builtin.file:
-    path: /etc/grafana/provisioning/datasources
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /usr/share/grafana          # Stary katalog domowy / link
+    - /usr/share/grafana-v10.4.2 # Rozpakowane archiwum
+    - /var/lib/grafana          # Dane
+    - /var/log/grafana          # Logi
+    - /etc/grafana              # Konfiguracja
+    - /etc/systemd/system/grafana-server.service # Plik usługi
+
+
+
+- name: Install dependencies for Grafana
+  ansible.builtin.apt:
+    name:
+      - adduser
+      - libfontconfig1
+    state: present
+
+- name: Create a grafana user
+  ansible.builtin.user:
+    name: grafana
+    system: yes
+    shell: /bin/false
+
+- name: Ensure Grafana home directory exists
+  ansible.builtin.file:
+    path: /usr/share/grafana # Katalog domowy Grafany
     state: directory
-    owner: root
+    owner: grafana
     group: grafana
     mode: '0755'
+
+- name: Download and unarchive Grafana
+  ansible.builtin.unarchive:
+    src: https://dl.grafana.com/oss/release/grafana-10.4.2.linux-amd64.tar.gz
+    dest: /usr/share/
+    remote_src: yes
+    owner: root
+    group: root
+
+# --- NOWE ZADANIE DO SPRZĄTANIA ---
+- name: Remove old /usr/share/grafana directory if it exists
+  ansible.builtin.file:
+    path: /usr/share/grafana
+    state: absent
+
+
+
+- name: Rename the Grafana directory for consistency
+  ansible.builtin.command: mv /usr/share/grafana-v10.4.2 /usr/share/grafana
+  args:
+    creates: /usr/share/grafana # Wykonaj tylko, jeśli /usr/share/grafana nie istnieje
+
+
+
+- name: Ensure Grafana directories exist with correct permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0755'
+  loop:
+    - /var/lib/grafana
+    - /var/log/grafana
+    - /etc/grafana
+    - /etc/grafana/provisioning
+    - /etc/grafana/provisioning/datasources
+
+
+- name: Copy the Grafana service file
+  ansible.builtin.copy:
+    # Pracujemy teraz na stałej, przewidywalnej ścieżce
+    src: /usr/share/grafana/packaging/rpm/systemd/grafana-server.service
+    dest: /etc/systemd/system/grafana-server.service
+    remote_src: yes
+    mode: '0644'
+  notify: Reload systemd and restart Grafana
 
 - name: Provision the InfluxDB data source for Grafana
   ansible.builtin.template:
     src: datasource.yml.j2
     dest: /etc/grafana/provisioning/datasources/influxdb.yml
-    owner: root
+    owner: grafana
     group: grafana
     mode: '0644'
   notify: Restart Grafana
-
-- name: Set Grafana admin password
-  ansible.builtin.command: "grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
-  changed_when: true
-  no_log: true
-  # To polecenie zwróci błąd, jeśli hasło jest już ustawione, ale na razie to OK.
 
 - name: Start and enable Grafana service
   ansible.builtin.service:
