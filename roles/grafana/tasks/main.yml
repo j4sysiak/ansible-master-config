@@ -1,0 +1,74 @@
+---
+# === ETAP 0: CZYSZCZENIE ===
+- name: Stop and disable Grafana if it exists
+  ansible.builtin.service:
+    name: grafana-server
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Purge any existing Grafana packages from apt
+  ansible.builtin.apt:
+    name: grafana
+    state: absent
+    purge: yes
+  ignore_errors: yes
+
+- name: Forcefully remove old Grafana directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/grafana
+    - /var/lib/grafana
+
+# === ETAP 1: INSTALACJA ===
+- name: Add Grafana GPG key
+  ansible.builtin.apt_key:
+    url: https://apt.grafana.com/gpg.key
+    state: present
+
+- name: Add Grafana repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.grafana.com stable main"
+    state: present
+    update_cache: yes
+
+- name: Install a specific, stable version of Grafana (LTS 9.x)
+  ansible.builtin.apt:
+    name: "grafana=9.5.19"
+    state: present
+
+- name: Start and enable Grafana service
+  ansible.builtin.service:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Wait for Grafana to be fully running
+  ansible.builtin.wait_for:
+    port: 3000
+    delay: 5
+
+# === ETAP 2: KONFIGURACJA PRZEZ API ===
+- name: Set Grafana admin password
+  ansible.builtin.command: "grafana-cli admin reset-admin-password {{ grafana_admin_password }}"
+  changed_when: true
+  no_log: true
+
+
+# UWAGA: zainstaluj to na Oracle:  ansible-galaxy collection install community.grafana
+#    ale najpierw odpal to:  source ~/ansible-venv/bin/activate   na tym serwerze
+  # - name: Provision the InfluxDB data source via API
+    #   community.grafana.grafana_datasource:
+    #     name: "InfluxDB_API"
+    #     grafana_url: "http://localhost:3000"
+    #     grafana_user: "{{ grafana_admin_user }}"
+    #     grafana_password: "{{ grafana_admin_password }}"
+    #    ds_type: "influxdb"
+    #     ds_url: "http://localhost:8086"
+    #    jsonData:
+    #      version: "Flux"
+    #      organization: "{{ influxdb_org }}"
+    #   secureJsonData:
+#      token: "{{ influxdb_admin_token }}"

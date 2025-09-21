@@ -1,0 +1,18 @@
+# Upewnijmy się, że to nie jest pusty plik
+# Plik zostanie przetworzony przez Ansible
+
+# apiVersion i datasources muszą być na najwyższym poziomie
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB_Ansible
+    type: influxdb
+    access: proxy
+    url: http://localhost:8086
+    jsonData:
+      version: Flux
+      organization: "{{ influxdb_org }}"
+      defaultBucket: "{{ influxdb_bucket }}"
+      tlsSkipVerify: true
+    secureJsonData:
+      token: "{{ influxdb_admin_token }}"
