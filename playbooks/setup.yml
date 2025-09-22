@@ -1,13 +1,9 @@
 ---
-
-# === NOWA SEKCJA PRE-FLIGHT CHECK ===
 - name: Pre-flight checks and apt cleanup
   hosts: all
   become: true
   roles:
     - apt-fix
-# === KONIEC NOWEJ SEKCJI ===
-
 
 - name: Apply common configuration to all hosts
   hosts: all
@@ -69,3 +65,10 @@
       tags: ['monitoring', 'telegraf']
     - role: grafana
       tags: ['monitoring', 'grafana']
+
+- name: Configure Docker
+  hosts: all # Docker przyda się wszędzie
+  become: true
+  roles:
+    - role: docker
+      tags: ['docker']
