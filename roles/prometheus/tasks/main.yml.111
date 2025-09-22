@@ -1,0 +1,33 @@
+---
+- name: Install dependencies for Docker modules
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+- name: Create Prometheus configuration directory
+  ansible.builtin.file:
+    path: "{{ prometheus_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Create Prometheus configuration file from template
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    mode: '0644'
+
+- name: Pull the Prometheus Docker image
+  community.docker.docker_image:
+    name: "prom/prometheus:{{ prometheus_version }}"
+    source: pull
+
+- name: Create and start the Prometheus container
+  community.docker.docker_container:
+    name: "{{ prometheus_container_name }}"
+    image: "prom/prometheus:{{ prometheus_version }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - "{{ prometheus_config_dir }}:/etc/prometheus/"

@@ -39,7 +39,7 @@
     name: iptables-persistent
     state: present
 
-    # --- NOWA SEKCJA DLA INFLUXDB ---
+# --- NOWA SEKCJA DLA INFLUXDB ---
 - name: Stop and disable InfluxDB service
   ansible.builtin.service:
     name: influxdb
@@ -124,3 +124,25 @@
     groups: docker
     append: no # 'append: no' w praktyce oznacza 'usuń z tej grupy'
   tags: ['docker']
+
+
+# --- NOWA SEKCJA: CZYSZCZENIE PROMETHEUSA ---
+- name: Stop and remove the Prometheus container
+  community.docker.docker_container:
+    name: "prometheus-server" # Użyj tej samej nazwy, co w roli prometheus
+    state: absent
+  ignore_errors: yes # Ignoruj błąd, jeśli kontener już nie istnieje
+  tags: [ 'prometheus' ]
+
+- name: Remove the Prometheus Docker image
+  community.docker.docker_image:
+    name: "prom/prometheus" # Można dodać :{{ prometheus_version }}, ale to jest ogólniejsze
+    state: absent
+  ignore_errors: yes
+  tags: [ 'prometheus' ]
+
+- name: Remove Prometheus configuration directory
+  ansible.builtin.file:
+    path: "/etc/prometheus" # Użyj tej samej ścieżki, co w roli prometheus
+    state: absent
+  tags: [ 'prometheus' ]
