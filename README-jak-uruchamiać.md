@@ -71,6 +71,7 @@ Dodałem nową regułę do firewalla w sekcji vars – to jest najlepsze miejsce
       - { proto: 'tcp', port: '8080', comment: 'Allow Tomcat' }
       - { proto: 'tcp', port: '8086', comment: 'Allow InfluxDB' }
       - { proto: 'tcp', port: '3000', comment: 'Allow Grafana' }
+      - { proto: 'tcp', port: '9090', comment: 'Allow Prometheus' }
 
 
 
