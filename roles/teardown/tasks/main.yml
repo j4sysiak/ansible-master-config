@@ -78,3 +78,49 @@
     - /root/.influxdbv2/   # Konfiguracja CLI dla roota
     - /etc/influxdb/       # Dodatkowe pliki konfiguracyjne
     - /var/log/influxdb/   # Logi
+
+
+# --- NOWA SEKCJA: CZYSZCZENIE DOCKERA ---
+- name: Stop and disable Docker service
+  ansible.builtin.service:
+    name: docker
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  tags: ['docker'] # Dodajemy tagi dla elastyczności
+
+- name: Uninstall Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: absent
+    purge: yes
+    autoremove: yes
+  tags: ['docker']
+
+- name: Remove Docker apt repository
+  ansible.builtin.apt_repository:
+    repo: >
+      deb [arch={{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}
+      signed-by=/etc/apt/keyrings/docker.gpg]
+      https://download.docker.com/linux/ubuntu
+      {{ ansible_distribution_release }} stable
+    state: absent
+  tags: ['docker']
+
+- name: Remove Docker GPG key
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/docker.gpg
+    state: absent
+  tags: ['docker']
+
+- name: Remove 'ubuntu' user from the docker group
+  ansible.builtin.user:
+    name: ubuntu
+    groups: docker
+    append: no # 'append: no' w praktyce oznacza 'usuń z tej grupy'
+  tags: ['docker']
