@@ -75,3 +75,10 @@
   roles:
     - role: docker
       tags: ['docker']
+
+- name: Configure legacy database servers
+  hosts: legacy_db_servers
+  become: true
+  roles:
+    - role: influxdb_legacy
+      tags: ['influxdb_legacy']
