@@ -7,13 +7,18 @@
     state: stopped
     enabled: no
   ignore_errors: yes # Ignoruj błąd, jeśli usługa już nie istnieje
+  tags: ['nginx']
 
-- name: Uninstall Nginx
+- name: Uninstall Nginx and all related packages
   ansible.builtin.apt:
-    name: nginx
-    state: absent
-    purge: yes # Usuń też pliki konfiguracyjne
-    autoremove: yes # Usuń niepotrzebne zależności
+    name:
+      - nginx*   # Gwiazdka usuwa wszystko, co zaczyna się od 'nginx'
+      - nginx-common
+    state: absent # Usuń też pliki konfiguracyjne
+    purge: yes # Usuń niepotrzebne zależności
+    autoremove: yes
+  tags: ['nginx']
+
 
 - name: Stop and disable PostgreSQL service
   ansible.builtin.service:
@@ -21,66 +26,90 @@
     state: stopped
     enabled: no
   ignore_errors: yes
+  tags: [ 'postgres' ]
 
-- name: Uninstall PostgreSQL
+- name: Uninstall PostgreSQL and all related packages
   ansible.builtin.apt:
-    name: postgresql
+    name:
+      - postgresql* # Gwiazdka usuwa wszystko, co zaczyna się od 'postgresql'
+      - postgresql-client*
     state: absent
     purge: yes
     autoremove: yes
+  tags: [ 'postgres' ]
 
-- name: Flush all iptables rules
-  ansible.builtin.iptables:
-    flush: yes
-  notify: Save flushed iptables rules
 
-- name: Ensure iptables-persistent is installed (for handler)
+
+
+
+- name: Purge any existing Telegraf packages from apt
   ansible.builtin.apt:
-    name: iptables-persistent
-    state: present
-
-# --- NOWA SEKCJA DLA INFLUXDB ---
-- name: Stop and disable InfluxDB service
-  ansible.builtin.service:
-    name: influxdb
-    state: stopped
-    enabled: no
-  ignore_errors: yes
-
-- name: Uninstall InfluxDB and its dependencies
-  ansible.builtin.apt:
-    name: influxdb2
-    state: absent
-    purge: yes # Ważne: usuń też pliki konfiguracyjne
-    autoremove: yes
-
-
-- name: Stop and disable InfluxDB service
-  ansible.builtin.service:
-    name: influxdb
-    state: stopped
-    enabled: no
-  ignore_errors: yes
-
-- name: Uninstall InfluxDB and its dependencies
-  ansible.builtin.apt:
-    name: influxdb2
+    name: telegraf* # Gwiazdka usuwa wszystko, co zaczyna się od 'grafana'
     state: absent
     purge: yes
-    autoremove: yes
+  ignore_errors: yes
+  tags: [ 'telegraf' ]
 
-- name: Remove ALL InfluxDB data and configuration directories
+
+
+
+
+- name: Stop and disable Grafana service
+  ansible.builtin.service:
+    name: grafana-server
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  become: true # <-- Dodajemy dla pewności
+
+- name: Uninstall Grafana package
+  ansible.builtin.apt:
+    name: grafana* # Gwiazdka usuwa wszystko, co zaczyna się od 'grafana'
+    state: absent
+    purge: yes
+  become: true # <-- Dodajemy dla pewności
+
+- name: Forcefully remove old Grafana directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
-    - /var/lib/influxdb/  # Główny katalog danych
-    - /root/.influxdbv2/   # Konfiguracja CLI dla roota
-    - /etc/influxdb/       # Dodatkowe pliki konfiguracyjne
-    - /var/log/influxdb/   # Logi
+    - /usr/share/grafana
+    - /var/lib/grafana
+    - /var/log/grafana
+    - /etc/grafana
+  become: true # <-- Dodajemy dla pewności
+
+
+- name: Stop and disable Tomcat service
+  ansible.builtin.service:
+    name: tomcat
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  tags: ['tomcat']
+
+- name: Remove Tomcat artifacts
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /opt/tomcat
+    - /etc/systemd/system/tomcat.service
+  tags: ['tomcat']
+
+
+
 
 
 # --- NOWA SEKCJA: CZYSZCZENIE DOCKERA ---
+- name: Uninstall Docker SDK for Python
+  ansible.builtin.pip:
+    name: docker
+    state: absent
+  tags: ['docker']
+
+
 - name: Stop and disable Docker service
   ansible.builtin.service:
     name: docker
@@ -92,6 +121,7 @@
 - name: Uninstall Docker packages
   ansible.builtin.apt:
     name:
+      - docker*
       - docker-ce
       - docker-ce-cli
       - containerd.io
@@ -146,3 +176,114 @@
     path: "/etc/prometheus" # Użyj tej samej ścieżki, co w roli prometheus
     state: absent
   tags: [ 'prometheus' ]
+
+
+
+# === CZYSZCZENIE FIREWALLA ===
+- name: Flush all iptables rules
+  ansible.builtin.iptables:
+    flush: yes
+  notify: Save flushed iptables rules
+  tags: ['firewall']
+
+- name: Ensure iptables-persistent is installed (for handler)
+  ansible.builtin.apt:
+    name: iptables-persistent
+    state: present
+  tags: ['firewall']
+
+
+# === CZYSZCZENIE INFLUXDB 2.x (NOWA WERSJA) ===
+- name: Stop and disable InfluxDB v2 service
+  ansible.builtin.service:
+    name: influxdb
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  tags: ['influxdb']
+
+- name: Uninstall InfluxDB v2 package
+  ansible.builtin.apt:
+    name: influxdb2
+    state: absent
+    purge: yes
+  tags: ['influxdb']
+
+- name: Remove InfluxDB v2 data and config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/influxdb/
+    - /root/.influxdbv2/
+    - /etc/influxdb/
+  tags: ['influxdb']
+
+# === CZYSZCZENIE INFLUXDB 1.x (LEGACY) ===
+- name: Stop and disable legacy InfluxDB service
+  ansible.builtin.service:
+    name: influxdb-legacy # <-- Używamy nowej, unikalnej nazwy!
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+  tags: ['influxdb_legacy']
+
+- name: Remove legacy InfluxDB binaries from /usr/bin
+  ansible.builtin.file:
+    path: "/usr/bin/{{ item }}"
+    state: absent
+  loop:
+    - influx
+    - influxd
+  tags: ['influxdb_legacy']
+
+- name: Remove legacy InfluxDB installation and config directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /opt/influxdb
+    - /etc/influxdb # Ten katalog jest współdzielony, ale bezpiecznie go usuwać
+  tags: ['influxdb_legacy']
+
+- name: Remove legacy InfluxDB systemd service file
+  ansible.builtin.file:
+    path: /etc/systemd/system/influxdb-legacy.service # <-- Nowa, unikalna nazwa!
+    state: absent
+  notify: Reload systemd daemon
+  tags: ['influxdb_legacy']
+
+- name: Remove influxdb user and group
+  ansible.builtin.user:
+    name: influxdb
+    state: absent
+    remove: yes
+  ignore_errors: yes # Ignoruj błąd, jeśli user już nie istnieje
+  tags: ['influxdb_legacy']
+
+- name: Stop and remove the InfluxDB 1.8 container
+  community.docker.docker_container:
+    name: "influxdb-v1-server"
+    state: absent
+  tags: ['influxdb_on_docker']
+
+#---  CZYSZCZENIE JAVY ---
+- name: Purge all OpenJDK packages
+  ansible.builtin.apt:
+    name: "openjdk-*"
+    state: absent
+    purge: yes
+
+- name: Autoremove dependencies after purging Java
+  ansible.builtin.apt:
+    autoremove: yes
+
+- name: Remove manually installed Java directories
+  ansible.builtin.file:
+    path: "/opt/jdk"
+    state: absent
+
+- name: Remove Java environment file
+  ansible.builtin.file:
+    path: /etc/profile.d/java_home.sh
+    state: absent

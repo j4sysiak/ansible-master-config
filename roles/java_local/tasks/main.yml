@@ -5,16 +5,27 @@
     state: directory
     mode: '0755'
 
-- name: Unarchive JDK from local file
-  ansible.builtin.unarchive:
-    src: "{{ java_local_archive }}"
-    dest: "{{ java_install_parent_dir }}"
-    owner: root
-    group: root
+- name: Download and Unarchive JDK using shell
+  ansible.builtin.shell: |
+    wget -O "/tmp/{{ java_local_archive }}" "{{ java_local_archive_url }}"
+    tar -xvf "/tmp/{{ java_local_archive }}" -C "{{ java_install_parent_dir }}"
+  args:
     creates: "{{ java_install_parent_dir }}/{{ java_local_unpacked_dir }}"
 
-- name: Set JAVA_HOME environment variable globally
-  ansible.builtin.template:
-    src: java_home.sh.j2 # Musimy stworzyć ten plik!
-    dest: /etc/profile.d/java_home.sh
-    mode: '0644'
+# --- NOWE, OSTATECZNE ZADANIE ---
+- name: Create symbolic links for Java binaries
+  ansible.builtin.file:
+    src: "{{ java_install_parent_dir }}/{{ java_local_unpacked_dir }}/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    state: link
+    force: yes
+  loop:
+    - java
+    - javac
+    - jar
+    - jps
+
+- name: Clean up the temporary JDK archive
+  ansible.builtin.file:
+    path: "/tmp/{{ java_local_archive }}"
+    state: absent

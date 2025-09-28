@@ -1,0 +1,22 @@
+---
+- name: Ensure InfluxDB 1.x data directory exists on host
+  ansible.builtin.file:
+    path: /var/lib/influxdb
+    state: directory
+    mode: '0755'
+
+- name: Pull the InfluxDB 1.8 Docker image
+  community.docker.docker_image:
+    name: "influxdb:1.8"
+    source: pull
+
+- name: Create and start the InfluxDB 1.8 container
+  community.docker.docker_container:
+    name: "influxdb-v1-server" # Dajmy unikalną nazwę
+    image: "influxdb:1.8"
+    state: started
+    restart_policy: always
+    ports:
+      - "8086:8086"
+    volumes:
+      - /var/lib/influxdb:/var/lib/influxdb

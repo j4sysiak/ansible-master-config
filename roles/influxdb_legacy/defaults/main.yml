@@ -1,7 +1,10 @@
 ---
 influxdb_legacy_version: "1.8.10"
-influxdb_legacy_archive: "influxdb-{{ influxdb_legacy_version }}_linux_amd64.tar.gz" #influxdb-1.8.10_linux_amd64.tar.gz
-influxdb_legacy_unpacked_dir: "influxdb-{{ influxdb_legacy_version }}"
+influxdb_legacy_archive_url: "https://dl.influxdata.com/influxdb/releases/influxdb-{{ influxdb_legacy_version }}_linux_amd64.tar.gz"
+influxdb_legacy_archive: "influxdb-{{ influxdb_legacy_version }}_linux_amd64.tar.gz"
+
+# WAŻNE: Po rozpakowaniu, katalog wewnątrz ma myślnik i numer, np. influxdb-1.8.10-1
+influxdb_legacy_unpacked_dir: "influxdb-{{ influxdb_legacy_version }}-1"
 
 influxdb_legacy_install_dir: "/opt/influxdb"
 influxdb_legacy_config_file: "/etc/influxdb/influxdb.conf"

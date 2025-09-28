@@ -6,7 +6,7 @@
     create_home: no
     shell: /bin/false
 
-- name: Create InfluxDB directories
+- name: Create InfluxDB base directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -16,20 +16,21 @@
   loop:
     - /var/lib/influxdb
     - /etc/influxdb
+    - "{{ influxdb_legacy_install_dir }}" # /opt/influxdb
 
-- name: Unarchive InfluxDB from local file
+- name: Download and Unarchive InfluxDB
   ansible.builtin.unarchive:
-    src: "{{ influxdb_legacy_archive }}"
-    dest: "{{ influxdb_legacy_install_dir }}"
+    src: "{{ influxdb_legacy_archive_url }}"
+    dest: "{{ influxdb_legacy_install_dir }}" # Rozpakuj do /opt/influxdb
+    remote_src: yes
     owner: influxdb
     group: influxdb
-    strip_components: 1
-    remote_src: no # WAŻNE: Mówimy, że plik jest w roli, a nie na serwerze zdalnym
-    creates: "{{ influxdb_legacy_install_dir }}/influxd"
+    creates: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}"
 
 - name: Copy binaries to /usr/bin
   ansible.builtin.copy:
-    src: "{{ influxdb_legacy_install_dir }}/{{ item }}"
+    # Używamy PEŁNEJ, POPRAWNEJ ścieżki
+    src: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}/usr/bin/{{ item }}"
     dest: "/usr/bin/{{ item }}"
     remote_src: yes
     mode: '0755'
@@ -38,19 +39,19 @@
     - influxd
 
 - name: Create default config file
-  ansible.builtin.command: influxd config > {{ influxdb_legacy_config_file }}
+  ansible.builtin.command: /usr/bin/influxd config > {{ influxdb_legacy_config_file }}
   args:
     creates: "{{ influxdb_legacy_config_file }}"
 
-- name: Create systemd service file
+- name: Create custom systemd service file
   ansible.builtin.template:
     src: influxdb.service.j2
-    dest: /etc/systemd/system/influxdb.service
+    dest: /etc/systemd/system/influxdb-legacy.service # <-- NOWA NAZWA!
     mode: '0644'
   notify: Reload systemd and restart influxdb
 
-- name: Start and enable InfluxDB service
+- name: Start and enable InfluxDB legacy service
   ansible.builtin.service:
-    name: influxdb
+    name: influxdb-legacy # <-- NOWA NAZWA!
     state: started
     enabled: yes

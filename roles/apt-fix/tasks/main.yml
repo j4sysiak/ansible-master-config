@@ -41,24 +41,3 @@
   ansible.builtin.apt:
     update_cache: yes
   changed_when: false
-
-#---  CZYSZCZENIE JAVY ---
-- name: Purge all OpenJDK packages
-  ansible.builtin.apt:
-    name: "openjdk-*"
-    state: absent
-    purge: yes
-
-- name: Autoremove dependencies after purging Java
-  ansible.builtin.apt:
-    autoremove: yes
-
-- name: Remove manually installed Java directories
-  ansible.builtin.file:
-    path: "/opt/jdk"
-    state: absent
-
-- name: Remove Java environment file
-  ansible.builtin.file:
-    path: /etc/profile.d/java_home.sh
-    state: absent
