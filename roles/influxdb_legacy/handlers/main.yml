@@ -1,10 +1,10 @@
 ---
-- name: Restart influxdb
+- name: Restart influxdb-legacy
   ansible.builtin.service:
-    name: influxdb
+    name: influxdb-legacy
     state: restarted
 
-- name: Reload systemd and restart influxdb
+- name: Reload systemd and restart influxdb-legacy
   ansible.builtin.systemd:
     daemon_reload: yes
-  notify: Restart influxdb
+  notify: Restart influxdb-legacy

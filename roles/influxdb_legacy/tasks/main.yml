@@ -18,7 +18,7 @@
     - /etc/influxdb
     - "{{ influxdb_legacy_install_dir }}" # /opt/influxdb
 
-- name: Download and Unarchive InfluxDB
+- name: Download and Unarchive InfluxDB (without stripping components)
   ansible.builtin.unarchive:
     src: "{{ influxdb_legacy_archive_url }}"
     dest: "{{ influxdb_legacy_install_dir }}" # Rozpakuj do /opt/influxdb
@@ -29,7 +29,7 @@
 
 - name: Copy binaries to /usr/bin
   ansible.builtin.copy:
-    # Używamy PEŁNEJ, POPRAWNEJ ścieżki
+    # Używamy PEŁNEJ, PRAWDZIWEJ ścieżki
     src: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}/usr/bin/{{ item }}"
     dest: "/usr/bin/{{ item }}"
     remote_src: yes
@@ -43,15 +43,17 @@
   args:
     creates: "{{ influxdb_legacy_config_file }}"
 
-- name: Create custom systemd service file
-  ansible.builtin.template:
-    src: influxdb.service.j2
-    dest: /etc/systemd/system/influxdb-legacy.service # <-- NOWA NAZWA!
+- name: Copy the official systemd service file with a new name
+  ansible.builtin.copy:
+    # Używamy PEŁNEJ, PRAWDZIWEJ ścieżki
+    src: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}/usr/lib/influxdb/scripts/influxdb.service"
+    dest: /etc/systemd/system/influxdb-legacy.service
+    remote_src: yes
     mode: '0644'
-  notify: Reload systemd and restart influxdb
+  notify: Reload systemd and restart influxdb-legacy
 
-- name: Start and enable InfluxDB legacy service
-  ansible.builtin.service:
-    name: influxdb-legacy # <-- NOWA NAZWA!
-    state: started
-    enabled: yes
+#- name: Start and enable the InfluxDB legacy service
+#  ansible.builtin.service:
+#    name: influxdb-legacy
+#    state: started
+#    enabled: yes
