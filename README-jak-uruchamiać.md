@@ -19,7 +19,7 @@ Teraz Twój cykl pracy (np. podczas testowania zmian) wygląda tak:
 
 
 Weryfikacja
-Wejdź na http://130.61.228.18 – powinieneś zobaczyć stronę Nginx.
+Wejdź na http://141.144.231.36 – powinieneś zobaczyć stronę Nginx.
 Zaloguj się na serwer przez SSH i sprawdź:
 sudo iptables -L INPUT – powinieneś zobaczyć wszystkie 3 reguły.
 systemctl status postgresql – usługa powinna być active (running).

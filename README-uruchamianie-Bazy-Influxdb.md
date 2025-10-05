@@ -1,7 +1,7 @@
 
 
 url do konsoli bazy:    
-# http://130.61.228.18:8086
+# http://141.144.231.36:8086
 
 hasło / login   (roles/influxdb/defaults/main.yml)
 --------------------------------------------------

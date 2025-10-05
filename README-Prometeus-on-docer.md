@@ -27,7 +27,7 @@ Zaloguj się na serwer i wpisz docker ps.
 Powinieneś zobaczyć działający kontener prometheus-server.
 
 Wielki finał: Otwórz przeglądarkę i wejdź na adres:
-http://130.61.228.18:9090
+http://141.144.231.36:9090
 Powinieneś zobaczyć interfejs webowy Prometheusa! 
 Możesz wejść w Status -> Targets i zobaczysz, że Prometheus poprawnie monitoruje sam siebie.
 
