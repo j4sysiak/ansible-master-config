@@ -7,9 +7,7 @@
 # za każdym razem, gdy Ansible napotka w playbooku polecenie uruchomienia roli tomcat,
 # najpierw sprawdzi jej zależności. Zobaczy, że wymaga ona roli java_local i automatycznie 
 # uruchomi java_local jako pierwszą (chyba że została już uruchomiona wcześniej w tym samym przebiegu).
-# UWAGA:  mozemy zainstalować i skonfigurować własną javę na Oracle, wystarczy uruchomić role: java_hosts
-#  jednak trzeba przerzucić 190 MB po sieci (stąd do Oracla) i to trwa wieki
-#  więc pozostaje przy tym rozwiązaniu
 
-# dependencies:
-#   - role: java_local
+
+dependencies:
+  - role: java_local

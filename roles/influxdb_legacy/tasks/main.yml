@@ -1,0 +1,59 @@
+---
+- name: Create influxdb group and user
+  ansible.builtin.user:
+    name: influxdb
+    system: yes
+    create_home: no
+    shell: /bin/false
+
+- name: Create InfluxDB base directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: influxdb
+    group: influxdb
+    mode: '0755'
+  loop:
+    - /var/lib/influxdb
+    - /etc/influxdb
+    - "{{ influxdb_legacy_install_dir }}" # /opt/influxdb
+
+- name: Download and Unarchive InfluxDB (without stripping components)
+  ansible.builtin.unarchive:
+    src: "{{ influxdb_legacy_archive_url }}"
+    dest: "{{ influxdb_legacy_install_dir }}" # Rozpakuj do /opt/influxdb
+    remote_src: yes
+    owner: influxdb
+    group: influxdb
+    creates: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}"
+
+- name: Copy binaries to /usr/bin
+  ansible.builtin.copy:
+    # Używamy PEŁNEJ, PRAWDZIWEJ ścieżki
+    src: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}/usr/bin/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    remote_src: yes
+    mode: '0755'
+  loop:
+    - influx
+    - influxd
+
+- name: Create default config file
+  ansible.builtin.command: /usr/bin/influxd config > {{ influxdb_legacy_config_file }}
+  args:
+    creates: "{{ influxdb_legacy_config_file }}"
+
+- name: Copy the official systemd service file with a new name
+  ansible.builtin.copy:
+    # Używamy PEŁNEJ, PRAWDZIWEJ ścieżki
+    src: "{{ influxdb_legacy_install_dir }}/{{ influxdb_legacy_unpacked_dir }}/usr/lib/influxdb/scripts/influxdb.service"
+    dest: /etc/systemd/system/influxdb-legacy.service
+    remote_src: yes
+    mode: '0644'
+  notify: Reload systemd and restart influxdb-legacy
+
+#- name: Start and enable the InfluxDB legacy service
+#  ansible.builtin.service:
+#    name: influxdb-legacy
+#    state: started
+#    enabled: yes
